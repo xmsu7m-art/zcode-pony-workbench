@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZCode 小马工作台 · 实时</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; padding: 24px 16px; background: light-dark(#ececf0, #0e0e11);
+    font-family: -apple-system, "Segoe UI", system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+    display: flex; justify-content: center; min-height: calc(100vh - 48px); align-items: flex-start;
+  }
+  #zw {
+    --zw-bg: light-dark(#f6f6f8, #141417);
+    --zw-rail: light-dark(#ececef, #1b1b20);
+    --zw-panel: light-dark(#ffffff, #1e1e24);
+    --zw-panel-2: light-dark(#f3f3f6, #232329);
+    --zw-border: light-dark(rgba(20,20,30,.10), rgba(255,255,255,.09));
+    --zw-text: light-dark(#1c1c21, #ececf1);
+    --zw-dim: light-dark(#6b6b76, #9a9aa6);
+    --zw-accent: light-dark(#6d5ae6, #8a7bff);
+    --zw-accent-soft: light-dark(rgba(109,90,230,.12), rgba(138,123,255,.16));
+    --zw-ok: light-dark(#1f9d61, #3ecf8e);
+    --zw-warn: light-dark(#c07a12, #f0b429);
+    --zw-bad: light-dark(#d64545, #ff6b6b);
+    --zw-wall: light-dark(#f1eefb, #262631);
+    --zw-floor-a: light-dark(#e9e6f7, #232330);
+    --zw-floor-b: light-dark(#ded9f2, #1f1f2b);
+    --zw-wood: light-dark(#cdb08a, #8a6f52);
+    --zw-wood-dark: light-dark(#b3926c, #755c42);
+    --zw-screen-off: light-dark(#d8d5e6, #2c2c3a);
+    --zw-chair: light-dark(#8f8fa0, #4a4a5c);
+    color: var(--zw-text); background: var(--zw-bg);
+    border: 1px solid var(--zw-border); border-radius: 14px; overflow: hidden;
+    display: flex; width: 100%; max-width: 1240px; min-height: 640px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.18);
+  }
+  #zw * { box-sizing: border-box; }
+  #zw .zw-rail { width: 52px; background: var(--zw-rail); border-right: 1px solid var(--zw-border); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 12px 0; }
+  #zw .zw-logo { width: 30px; height: 30px; border-radius: 8px; background: var(--zw-accent); color: #fff; font-weight: 500; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  #zw .zw-ricon { color: var(--zw-dim); }
+  #zw .zw-spacer { flex: 1; }
+  #zw .zw-chat { flex: 1 1 340px; min-width: 280px; border-right: 1px solid var(--zw-border); display: flex; flex-direction: column; padding: 14px 16px; gap: 10px; }
+  #zw .zw-chat-title { font-size: 12px; color: var(--zw-dim); letter-spacing: .04em; }
+  #zw .zw-msg { max-width: 88%; padding: 8px 12px; border-radius: 12px; font-size: 13px; line-height: 1.55; }
+  #zw .zw-msg.u { align-self: flex-end; background: var(--zw-accent); color: #fff; border-bottom-right-radius: 4px; }
+  #zw .zw-msg.a { align-self: flex-start; background: var(--zw-panel-2); border-bottom-left-radius: 4px; }
+  #zw .zw-chat-input { margin-top: auto; border: 1px solid var(--zw-border); background: var(--zw-panel); border-radius: 10px; padding: 9px 12px; font-size: 12px; color: var(--zw-dim); display: flex; justify-content: space-between; }
+  #zw .zw-side { flex: 1 1 auto; min-width: 320px; background: var(--zw-panel); display: flex; flex-direction: column; padding: 14px 16px; gap: 10px; }
+  #zw .zw-side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  #zw .zw-side-title { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  #zw .zw-chip { font-size: 11px; padding: 3px 9px; border-radius: 999px; background: var(--zw-panel-2); color: var(--zw-dim); display: inline-flex; align-items: center; gap: 5px; }
+  #zw .zw-chip .zw-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--zw-ok); }
+  #zw .zw-chip.live .zw-dot { animation: zw-pulse 1.6s infinite; }
+  @keyframes zw-pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  #zw .zw-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+  #zw .zw-stat { flex: 1 1 110px; background: var(--zw-panel-2); border-radius: 10px; padding: 8px 10px; }
+  #zw .zw-stat b { display: block; font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    #zw .zw-stat span { font-size: 11px; color: var(--zw-dim); }
+    #zw .zw-wallet { cursor: pointer; background: var(--zw-panel-2); border-radius: 9px; padding: 6px 10px 7px; }
+    #zw .zw-wallet .zw-wbar { height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--zw-accent) 16%, transparent); overflow: hidden; margin-bottom: 4px; }
+    #zw .zw-wallet .zw-wbar i { display: block; height: 100%; border-radius: 3px; background: var(--zw-accent); transition: width .6s; }
+    #zw .zw-wallet span { font-size: 11px; color: var(--zw-dim); font-variant-numeric: tabular-nums; }
+  #zw .zw-scene { position: relative; border: 1px solid var(--zw-border); border-radius: 12px; overflow: hidden; background: var(--zw-wall); }
+  #zw canvas { display: block; width: 100%; height: 520px; cursor: pointer; }
+  #zw .zw-tag { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--zw-text); background: var(--zw-panel); border: 1px solid var(--zw-border); border-radius: 7px; padding: 1px 7px; white-space: nowrap; pointer-events: none; }
+  #zw .zw-tag .zw-sdot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: 1px; }
+  #zw .zw-bubble { position: absolute; transform: translateX(-50%); max-width: 200px; font-size: 11px; line-height: 1.4; background: var(--zw-panel); border: 1px solid var(--zw-border); color: var(--zw-text); border-radius: 9px; padding: 4px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; box-shadow: 0 3px 10px rgba(0,0,0,.10); }
+  #zw .zw-bubble::after { content: ""; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: inherit; border-right: 1px solid var(--zw-border); border-bottom: 1px solid var(--zw-border); transform: translateX(-50%) rotate(45deg); }
+  #zw .zw-detail { font-size: 12px; color: var(--zw-dim); background: var(--zw-panel-2); border-radius: 9px; padding: 7px 10px; min-height: 32px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  #zw .zw-detail b { color: var(--zw-text); font-weight: 500; }
+  #zw .zw-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--zw-border); }
+  #zw .zw-tabs button { border: 0; background: none; font: inherit; font-size: 13px; color: var(--zw-dim); padding: 6px 12px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  #zw .zw-tabs button[aria-selected="true"] { color: var(--zw-text); border-bottom-color: var(--zw-accent); }
+  #zw .zw-log { display: flex; flex-direction: column; gap: 6px; min-height: 170px; }
+  #zw .zw-row { display: flex; align-items: baseline; gap: 8px; font-size: 12px; }
+  #zw .zw-row .zw-t { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: var(--zw-dim); flex: none; width: 60px; }
+  #zw .zw-row .zw-agent { flex: none; width: 74px; color: var(--zw-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #zw .zw-row .zw-badge { flex: none; font-size: 11px; padding: 0 6px; border-radius: 5px; }
+  #zw .zw-row .zw-badge.ok { background: var(--zw-accent-soft); color: var(--zw-accent); }
+  #zw .zw-row .zw-badge.warn { background: color-mix(in srgb, var(--zw-warn) 16%, transparent); color: var(--zw-warn); }
+  #zw .zw-row .zw-badge.bad { background: color-mix(in srgb, var(--zw-bad) 15%, transparent); color: var(--zw-bad); }
+  #zw .zw-row .zw-badge.run { background: color-mix(in srgb, var(--zw-ok) 16%, transparent); color: var(--zw-ok); }
+  #zw .zw-row .zw-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #zw .zw-more { font-size: 11px; color: var(--zw-dim); }
+  #zw .zw-art { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border: 1px solid var(--zw-border); border-radius: 10px; font-size: 12px; }
+  #zw .zw-art .zw-sub { color: var(--zw-dim); font-size: 11px; margin-left: auto; white-space: nowrap; }
+  #zw .zw-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  #zw .zw-foot .zw-hint { font-size: 11px; color: var(--zw-dim); }
+  #zw .zw-btn { border: 1px solid var(--zw-border); background: var(--zw-panel); color: var(--zw-text); font: inherit; font-size: 12px; padding: 5px 12px; border-radius: 9px; cursor: pointer; }
+  #zw .zw-btn.primary { background: var(--zw-accent); border-color: transparent; color: #fff; }
+  @media (max-width: 900px) { #zw { flex-direction: column; } #zw .zw-rail { display: none; } #zw .zw-chat { border-right: 0; border-bottom: 1px solid var(--zw-border); } }
+</style>
+</head>
+<body>
+<div id="zw" aria-label="ZCode 小马工作台(实时)">
+  <nav class="zw-rail" aria-hidden="true">
+    <div class="zw-logo">Z</div>
+    <div class="zw-ricon">▣</div>
+    <div class="zw-ricon">▤</div>
+    <div class="zw-spacer"></div>
+    <div class="zw-ricon">⚙</div>
+  </nav>
+  
+  <aside class="zw-side" aria-label="小马工作台">
+    <div class="zw-side-head">
+      <div class="zw-side-title">小马工作台<span class="zw-chip" id="zw-live"><span class="zw-dot"></span><span id="zw-live-txt">连接中…</span></span></div>
+      <button type="button" class="zw-btn" id="zw-demo">播放演示</button>
+    </div>
+    <div class="zw-stats" aria-label="工作台状态">
+      <div class="zw-stat"><b id="zw-st-active">0/5</b><span>在岗小马</span></div>
+    </div>
+    <div class="zw-scene" id="zw-scene">
+      <canvas id="zw-canvas" role="img" aria-label="虚拟办公室动画:五个工位上的小马代理实时反映 ZCode 会话中的 agent 状态。"></canvas>
+    </div>
+    <div class="zw-detail" id="zw-detail" aria-live="polite">点击任意小马查看分工与最近动作。</div>
+    <div class="zw-tabs" role="tablist" aria-label="工作台视图">
+      <button type="button" role="tab" id="zw-tab-log" aria-selected="true" aria-controls="zw-panel-log">工作日志</button>
+      <button type="button" role="tab" id="zw-tab-art" aria-selected="false" aria-controls="zw-panel-art">产出物</button>
+    </div>
+    <div id="zw-panel-log" role="tabpanel" aria-labelledby="zw-tab-log" class="zw-log"></div>
+    <div id="zw-panel-art" role="tabpanel" aria-labelledby="zw-tab-art" hidden style="display:flex;flex-direction:column;gap:6px;min-height:170px;">
+      <div class="zw-art">events.jsonl<span class="zw-sub">hooks 原始事件流 · 追加写入</span></div>
+      <div class="zw-art">state.json<span class="zw-sub">每会话 token 累计游标</span></div>
+      <div class="zw-art">hook.py / server.py<span class="zw-sub">采集器 + 本地服务 · 可自查</span></div>
+    </div>
+    <div class="zw-foot">
+      <span class="zw-hint">数据源:hooks 事件流 + 会话转录增量(计费口径不含缓存读取)。点余额条可设额度。</span>
+    </div>
+  </aside>
+</div>
+<script>
+(function () {
+  "use strict";
+  var root = document.getElementById("zw");
+  var canvas = document.getElementById("zw-canvas");
+  var scene = document.getElementById("zw-scene");
+  var ctx = canvas.getContext("2d");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var ROSTER = [
+    { key: "main",    name: "ZCode",    role: "主编排 · 会话主代理",      scarf: "#8a7bff" },
+    { key: "explore", name: "Explore",  role: "只读检索 · 代码与文件扫描", scarf: "#5aa2ff" },
+    { key: "general", name: "General",  role: "通用子代理 · 多步研究任务", scarf: "#3ecf8e" },
+    { key: "flow",    name: "Workflow", role: "动态工作流 · 子代理并行",   scarf: "#ff8fa3" },
+    { key: "judge",   name: "Judge",    role: "视觉验收 · 交付物评审",     scarf: "#f0b429" }
+  ];
+  var SCARFS = ["#8a7bff", "#5aa2ff", "#3ecf8e", "#ff8fa3", "#f0b429", "#4dd0c4", "#ef9a6d"];
+
+  var C = {};
+  var probe = document.createElement("div");
+  probe.style.display = "none";
+  document.body.appendChild(probe);
+  function resolveColors() {
+    var names = ["--zw-wall","--zw-floor-a","--zw-floor-b","--zw-wood","--zw-wood-dark","--zw-screen-off",
+      "--zw-chair","--zw-text","--zw-dim","--zw-border","--zw-panel","--zw-accent","--zw-ok","--zw-warn","--zw-bad"];
+    names.forEach(function (n) {
+      probe.style.color = "";
+      probe.style.color = "var(" + n + ")";
+      C[n] = getComputedStyle(probe).color || "#888";
+    });
+    C.wall = C["--zw-wall"]; C.floorA = C["--zw-floor-a"]; C.floorB = C["--zw-floor-b"];
+    C.wood = C["--zw-wood"]; C.woodDark = C["--zw-wood-dark"]; C.screenOff = C["--zw-screen-off"];
+    C.chair = C["--zw-chair"]; C.text = C["--zw-text"]; C.dim = C["--zw-dim"]; C.border = C["--zw-border"];
+    C.accent = C["--zw-accent"]; C.ok = C["--zw-ok"]; C.warn = C["--zw-warn"]; C.bad = C["--zw-bad"];
+  }
+  resolveColors();
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", resolveColors);
+  window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", resolveColors);
+
+  var agents = ROSTER.map(function (r, i) {
+    return Object.assign({}, r, { idx: i, deskX: 0, x: -60, state: "absent", bubble: "", last: "—", blink: Math.random() * 3, workStart: 0, idleMode: null, idleNext: 0, idleStart: 0, idleDur: 0, phase: null, wy: 0, wtarget: 0, keys: [] });
+  });
+  var selected = null;
+
+  var W = 600, H = 520, floorY = 470, deskY = 420, dpr = 1, PS = 1;
+  function layout() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = scene.clientWidth - 2;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = agents.length, m = 30;
+    PS = Math.max(0.75, Math.min(1.8, ((W - 60) / n - 16) / 104));
+    agents.forEach(function (a, i) { a.deskX = Math.round(m + ((W - m * 2) / n) * (i + 0.5)); });
+    if (reduceMotion) drawStatic();
+  }
+
+  var tagEls = [], bubbleEls = [];
+  agents.forEach(function (a, i) {
+    var t = document.createElement("div");
+    t.className = "zw-tag";
+    t.style.top = (floorY + 8) + "px";
+    t.innerHTML = '<span class="zw-sdot"></span>' + a.name;
+    scene.appendChild(t); tagEls.push(t);
+    var b = document.createElement("div");
+    b.className = "zw-bubble"; b.style.display = "none";
+    scene.appendChild(b); bubbleEls.push(b);
+  });
+
+  /* ---------------- live engine ---------------- */
+  var sim = { t: 0, tokens: 0, shownTok: 0, rate: 0, active: false, wallet: 0, logRows: [], lastActor: null, source: "connecting", pos: 0 };
+
+  function normAgent(type) {
+    var t = String(type || "").toLowerCase();
+    for (var i = 1; i < agents.length; i++) {
+      var k = agents[i].key;
+      if (t.indexOf(k) >= 0) return agents[i];
+    }
+    if (t.indexOf("purpose") >= 0 || t.indexOf("general") >= 0) return agents[2];
+    if (t.indexOf("flow") >= 0) return agents[3];
+    if (t.indexOf("judge") >= 0) return agents[4];
+    if (t.indexOf("explore") >= 0 || t.indexOf("search") >= 0) return agents[1];
+    // unknown subagent type: first free desk, renamed
+    for (var j = 1; j < agents.length; j++) {
+      if (agents[j].state === "absent") {
+        var name = String(type || "visitor").split(/[:_-]/)[0].slice(0, 10);
+        agents[j].key = "dyn:" + name;
+        agents[j].name = name;
+        agents[j].role = "子代理 · " + String(type || "").slice(0, 40);
+        agents[j].scarf = SCARFS[j % SCARFS.length];
+        tagEls[j].innerHTML = '<span class="zw-sdot"></span>' + name;
+        return agents[j];
+      }
+    }
+    return null;
+  }
+  function agentByKey(key) {
+    if (!key || key === "main") return agents[0];
+    var a = normAgent(key);
+    return a || null;
+  }
+
+  var logBox = document.getElementById("zw-panel-log");
+  function fmtT(ts) {
+    try { var d = new Date(ts); return d.toTimeString().slice(0, 8); } catch (e) { return ""; }
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function addLog(a, tool, st, txt, ts) {
+    sim.logRows.push({ a: a, tool: tool, st: st, txt: txt, ts: ts || Date.now() });
+    var rows = sim.logRows.slice(-60);
+    var html = "";
+    if (sim.logRows.length > 9) html += '<div class="zw-more">…更早 ' + (sim.logRows.length - 9) + ' 条</div>';
+    rows.slice(-9).forEach(function (ev, i, arr) {
+      var isLast = i === arr.length - 1;
+      var badge = ev.st === "run" && isLast && !sim.liveIdle ? '<span class="zw-badge run">进行中</span>' :
+        ev.st === "fail" ? '<span class="zw-badge bad">失败</span>' :
+        ev.st === "warn" ? '<span class="zw-badge warn">改道</span>' : '<span class="zw-badge ok">完成</span>';
+      html += '<div class="zw-row"><span class="zw-t">' + fmtT(ev.ts) + '</span><span class="zw-agent">' + esc(ev.a) + '</span>' + badge +
+        '<span class="zw-txt">' + esc(ev.tool + " · " + ev.txt) + '</span></div>';
+    });
+    logBox.innerHTML = html;
+  }
+
+  var chatBox = document.getElementById("zw-chatlog");
+  function addChat(role, txt) {
+    var d = document.createElement("div");
+    d.className = "zw-msg " + role;
+    d.textContent = txt;
+    chatBox.appendChild(d);
+    while (chatBox.children.length > 8) chatBox.removeChild(chatBox.firstChild);
+  }
+
+  var detail = document.getElementById("zw-detail");
+  var ST_TXT = { absent: "不在工位", walkin: "正在入位", standby: "待机", working: "工作中", high: "高压运转", coffee: "咖啡休息" };
+  function updateDetail() {
+    if (!selected) { detail.textContent = "点击任意小马查看分工与最近动作。"; return; }
+    detail.innerHTML = "<b>" + esc(selected.name) + "</b> · " + esc(selected.role) + " · 状态:<b>" + ST_TXT[selected.state] + "</b> · 最近:" + esc(selected.last);
+  }
+
+  function setLive(txt, busy) {
+    document.getElementById("zw-live-txt").textContent = txt;
+    document.getElementById("zw-live").className = "zw-chip" + (busy ? " live" : "");
+  }
+
+  function handleEvent(ev) {
+    var now = Date.now();
+    if (ev.ev === "session") {
+      addLog("ZCode", "SessionStart", "ok", "会话启动 (" + (ev.text || "startup") + ")", ev.ts);
+      return;
+    }
+    if (ev.ev === "prompt") {
+      var m = agents[0];
+      m.state = m.state === "absent" ? "walkin" : "working";
+      m.walkT = 0; if (m.state === "walkin") m.x = -60;
+      m.workStart = now;
+      m.bubble = ev.text || "处理请求"; m.last = m.bubble;
+      sim.lastActor = m;
+      addLog("ZCode", "Prompt", "run", ev.text || "(空)", ev.ts);
+      addChat("u", ev.text || "");
+      return;
+    }
+    if (ev.ev === "agent_start") {
+      var a = agentByKey(ev.agent);
+      if (a) {
+        if (a.state === "absent") { a.state = "walkin"; a.x = -60; a.walkT = 0; }
+        else a.state = "working";
+        a.workStart = now;
+        a.bubble = ev.text ? "领任务: " + ev.text : "开始工作"; a.last = a.bubble;
+        sim.lastActor = a;
+        addLog(a.name, "Agent", "run", ev.text ? "启动子代理 · " + ev.text : "启动子代理", ev.ts);
+      }
+      return;
+    }
+    if (ev.ev === "tool") {
+      var main = agents[0];
+      main.state = "working"; main.workStart = now;
+      main.bubble = (ev.tool || "Tool") + " · " + (ev.text || "");
+      main.last = main.bubble;
+      sim.lastActor = main;
+      addLog("ZCode", ev.tool || "Tool", ev.status === "fail" ? "fail" : "ok", ev.text || "", ev.ts);
+      return;
+    }
+    if (ev.ev === "agent_end") {
+      var b = agentByKey(ev.agent);
+      if (b) {
+        b.state = Math.random() < 0.25 ? "coffee" : "standby";
+        b.bubble = b.state === "coffee" ? "☕ 咖啡配额 +1" : "任务完成,交还主编排";
+        b.last = ev.text || "子代理返回";
+        sim.lastActor = b;
+        addLog(b.name, "Agent", "ok", ev.text ? "返回 · " + ev.text : "子代理返回", ev.ts);
+      }
+      return;
+    }
+    if (ev.ev === "turn_end") {
+      var mm = agents[0];
+      mm.state = Math.random() < 0.35 ? "coffee" : "standby";
+      mm.bubble = mm.state === "coffee" ? "☕ 咖啡配额 +1" : "收工,等待下一个任务";
+      mm.last = "回合结束";
+      sim.lastActor = mm;
+      addLog("ZCode", "Stop", "ok", "回合结束,等待输入", ev.ts);
+      return;
+    }
+  }
+
+  /* ---------------- polling ---------------- */
+  var demoPlayed = false;
+  function poll() {
+    fetch("/events?since=" + sim.pos, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (d) {
+        sim.pos = d.pos || sim.pos;
+        var evs = d.events || [];
+        evs.forEach(handleEvent);
+        if (evs.length && sim.source !== "live") {
+          sim.source = "live";
+          if (demoPlayed) resetToLive();
+          setLive("实时 · hooks 已连接", true);
+        } else if (sim.source === "connecting") {
+          setLive("等待事件…(演示可点右下按钮)", false);
+          if (!demoPlayed) { demoPlayed = true; playDemo(); }
+        }
+      })
+      .catch(function () { setLive("服务离线 127.0.0.1:8799", false); });
+  }
+  function resetToLive() {
+    agents.forEach(function (a) { a.state = "absent"; a.bubble = ""; a.x = -60; });
+    sim.logRows = []; logBox.innerHTML = ""; sim.lastActor = null;
+    sim.tokens = 0;
+    selected = null; updateDetail();
+  }
+  setInterval(function () { poll(); }, 1200);
+  poll();
+
+  /* ---------------- demo (fallback) ---------------- */
+  var demoEvents = [
+    { dt: 0, fn: function () { agents[0].state = "walkin"; agents[0].x = -60; agents[0].walkT = 0; } },
+    { dt: 1.2, fn: function () { agents[0].state = "working"; agents[0].workStart = Date.now(); addLog("ZCode", "Bash", "ok", "扫描安装目录,定位目标软件", Date.now()); agents[0].bubble = "Bash · 扫描安装目录"; sim.lastActor = agents[0]; } },
+    { dt: 2.6, fn: function () { addLog("ZCode", "Read", "ok", "读取配置清单,锁定安装路径", Date.now()); agents[0].bubble = "Read · 锁定安装路径"; } },
+    { dt: 4.0, fn: function () { var e = agents[1]; e.state = "walkin"; e.x = -60; e.walkT = 0; addLog("Explore", "Agent", "run", "启动子代理 · 并行检索", Date.now()); e.bubble = "领任务: 并行检索"; sim.lastActor = e; } },
+    { dt: 5.4, fn: function () { agents[1].state = "working"; agents[1].workStart = Date.now(); addLog("Explore", "Grep", "run", "扫描 21MB 日志找状态机", Date.now()); agents[1].bubble = "Grep · 扫描日志"; } },
+    { dt: 7.5, fn: function () { addLog("ZCode", "Skill", "warn", "UI 自动化被提权挡住 → 改用截图", Date.now()); agents[0].bubble = "Skill · 改道截图方案"; } },
+    { dt: 9.5, fn: function () { agents[0].state = "high"; addLog("ZCode", "Review", "run", "子代理回报中,汇总压力拉满", Date.now()); } },
+    { dt: 11.5, fn: function () { agents[1].state = "standby"; addLog("Explore", "Agent", "ok", "返回 · 命中动画状态机与事件流", Date.now()); agents[1].bubble = "任务完成,交还主编排"; } },
+        { dt: 13.0, fn: function () { agents[0].state = "standby"; addLog("ZCode", "Stop", "ok", "回合结束,等待输入", Date.now()); agents[0].bubble = "收工,等待下一个任务"; } }
+  ];
+  var demoT = -1;
+  function playDemo() {
+    sim.source = "demo"; demoT = 0;
+    setLive("演示回放(等待真实事件)", true);
+    addChat("u", "给工作台接一套 Marvis 式的实时面板嘛");
+    demoEvents.forEach(function (e) { e.done = false; });
+  }
+  document.getElementById("zw-demo").onclick = function () { playDemo(); };
+
+  /* ---------------- drawing (same as prototype) ---------------- */
+  var puffs = [];
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h);
+  }
+      function drawPony(a, t) {
+    var isWander = a.idleMode === "wander";
+    if (a.state === "absent" && !isWander) return;
+    var body = "#35353f", bodyHi = "#43434f", bodyLo = "#2b2b33", muzzle = "#4c4c58", eye = "#f4f4f8";
+    var mane = a.scarf;
+    var working = a.state === "working" || a.state === "high";
+    var walking = a.state === "walkin" || (isWander && Math.abs(a.x - (a.phase === "back" ? a.deskX : a.wtarget)) > 3);
+    var bobSpd = a.state === "high" ? 14 : 7;
+    var bob = working ? Math.sin(t * bobSpd) * 2 : Math.sin(t * (a.idleMode === "tea" ? 1.1 : 1.6)) * (a.idleMode === "tea" ? 1.8 : 1.2);
+    var walkBob = walking ? Math.abs(Math.sin(t * 11)) * 4 : 0;
+    var lean = working ? 0.05 + Math.sin(t * 9) * 0.02 : (a.idleMode === "game" ? 0.06 : 0);
+    var yBase = isWander ? deskY + a.wy * 46 : deskY;
+    var walkTilt = walking ? 0.06 * Math.sin(t * 11) : 0;
+
+    ctx.save();
+    ctx.translate(a.x, yBase);
+    ctx.scale(PS, PS);
+    // 影子
+    ctx.fillStyle = "rgba(0,0,0,.16)";
+    ctx.beginPath();
+    ctx.ellipse(0, isWander ? 26 : 44, 24, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // 椅子(溜达时不在座)
+    if (!isWander) {
+      ctx.fillStyle = C.chair;
+      rr(-15, -58, 30, 42, 9); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,.16)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(-11, -50); ctx.lineTo(11, -50); ctx.stroke();
+      rr(-12, -16, 24, 9, 4); ctx.fill();
+    }
+
+    ctx.save();
+    ctx.translate(0, -(20 + bob + walkBob));
+    ctx.rotate(walkTilt + lean);
+
+    // 尾巴
+    var sway = Math.sin(t * (working ? 6.5 : 2.2)) * (working ? 3.4 : 2);
+    ctx.fillStyle = bodyLo;
+    ctx.beginPath();
+    ctx.moveTo(-10, 0);
+    ctx.bezierCurveTo(-22, -2 + sway, -26, 8 + sway, -18, 15);
+    ctx.bezierCurveTo(-16, 9, -13, 7, -9, 9);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = mane;
+    ctx.beginPath();
+    ctx.moveTo(-24, 6 + sway);
+    ctx.bezierCurveTo(-26, 10 + sway, -23, 14 + sway, -18, 15);
+    ctx.bezierCurveTo(-19, 11, -21, 9 + sway, -24, 6 + sway);
+    ctx.closePath(); ctx.fill();
+
+    if (walking) {
+      ctx.fillStyle = body;
+      var leg = Math.sin(t * 11) * 4;
+      rr(-10, 18, 6, 12 + leg, 3); ctx.fill();
+      rr(4, 18, 6, 12 - leg, 3); ctx.fill();
+    }
+
+    // 身体
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.ellipse(0, 8, 17, 15, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.5; ctx.fillStyle = bodyLo;
+    ctx.beginPath(); ctx.ellipse(0, 12, 15, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.35; ctx.fillStyle = bodyHi;
+    ctx.beginPath(); ctx.ellipse(-4, 0, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // 前蹄(坐下时搭在身前;游戏/喝茶时被道具遮挡)
+    ctx.fillStyle = body;
+    rr(-9, 16, 6, 6, 2); ctx.fill();
+    rr(3, 16, 6, 6, 2); ctx.fill();
+    ctx.fillStyle = "#232329";
+    rr(-9, 19.5, 6, 2.5, 1); ctx.fill();
+    rr(3, 19.5, 6, 2.5, 1); ctx.fill();
+
+    // 头
+    var sip = (a.state === "coffee" || a.idleMode === "tea") ? Math.sin(t * 2.2) * 0.12 - 0.08 : 0;
+    var gameFace = a.idleMode === "game";
+    ctx.save();
+    ctx.translate(0, -14);
+    ctx.rotate(sip + (gameFace ? Math.sin(t * 7) * 0.03 : 0));
+    // 耳朵
+    ctx.fillStyle = bodyHi;
+    ctx.beginPath(); ctx.moveTo(-9, -7); ctx.lineTo(-13, -17); ctx.lineTo(-4, -10); ctx.closePath();
+    ctx.moveTo(9, -7); ctx.lineTo(13, -17); ctx.lineTo(4, -10); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = bodyLo;
+    ctx.beginPath(); ctx.moveTo(-9.2, -8.5); ctx.lineTo(-11.4, -14.5); ctx.lineTo(-6, -10.2); ctx.closePath();
+    ctx.moveTo(9.2, -8.5); ctx.lineTo(11.4, -14.5); ctx.lineTo(6, -10.2); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = bodyHi;
+    ctx.beginPath(); ctx.arc(0, 0, 11.5, 0, Math.PI * 2); ctx.fill();
+    // 刘海 + 侧发
+    ctx.fillStyle = mane;
+    ctx.beginPath();
+    ctx.moveTo(-11, -2);
+    ctx.quadraticCurveTo(-12, -9.5, -4.5, -11.2);
+    ctx.quadraticCurveTo(-5.8, -7.6, -1, -9.8);
+    ctx.quadraticCurveTo(-0.6, -12.2, 4.2, -11);
+    ctx.quadraticCurveTo(3.2, -8.2, 7.6, -8.6);
+    ctx.quadraticCurveTo(8.6, -10.4, 10.6, -6.6);
+    ctx.quadraticCurveTo(11, -2.4, 8, -1.4);
+    ctx.quadraticCurveTo(0, -4.6, -11, -2);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = mane; ctx.lineWidth = 2.6; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(9, -8);
+    ctx.quadraticCurveTo(13, -3, 11.5, 2); ctx.stroke();
+    ctx.lineCap = "butt";
+    // 眼睛:干活圆睁,喝茶周期性幸福闭眼,游戏兴奋眯眼
+    a.blink = (a.blink + 0.016) % 3.4;
+    var bliss = a.idleMode === "tea" && Math.sin(t * 1.1) > 0.55;
+    var closed = a.state === "coffee" || bliss || a.blink > 3.28;
+    var squint = gameFace && Math.sin(t * 5.3) > 0.4;
+    ctx.fillStyle = eye;
+    if (closed || squint) {
+      ctx.strokeStyle = eye; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(-4.5, -1, 2.4, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+      ctx.beginPath(); ctx.arc(4.5, -1, 2.4, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.arc(-4.5, -1, 2.4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(4.5, -1, 2.4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#26262e";
+      ctx.beginPath(); ctx.arc(-4.5, -0.8, 1.15, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(4.5, -0.8, 1.15, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,.9)";
+      ctx.beginPath(); ctx.arc(-5.1, -1.7, 0.55, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(3.9, -1.7, 0.55, 0, Math.PI * 2); ctx.fill();
+    }
+    // 眉毛
+    ctx.strokeStyle = bodyLo; ctx.lineWidth = 1.2;
+    var browY = a.state === "high" ? -5.2 : -4.6;
+    var tiltA = a.state === "high" ? 0.35 : 0.12;
+    ctx.beginPath(); ctx.moveTo(-6.4, browY + tiltA); ctx.lineTo(-2.6, browY - tiltA); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(2.6, browY - tiltA); ctx.lineTo(6.4, browY + tiltA); ctx.stroke();
+    // 腮红
+    ctx.fillStyle = "rgba(255,140,140,.32)";
+    ctx.beginPath(); ctx.ellipse(-7.5, 3.2, 2.3, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(7.5, 3.2, 2.3, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+    // 口鼻
+    ctx.fillStyle = muzzle;
+    ctx.beginPath(); ctx.ellipse(0, 5, 6.5, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#232329";
+    ctx.beginPath(); ctx.arc(-2.2, 4.6, 0.6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2.2, 4.6, 0.6, 0, Math.PI * 2); ctx.fill();
+    if (a.state === "coffee" || bliss || gameFace) {
+      // 张嘴:喝茶满足 / 游戏兴奋
+      ctx.beginPath(); ctx.ellipse(0, 7.2, gameFace ? 1.8 : 1.3, 1, 0, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.strokeStyle = "#232329"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(0, 5.6, 2.2, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke();
+    }
+    // 高压汗滴
+    if (a.state === "high") {
+      ctx.fillStyle = C.warn;
+      for (var si = 0; si < 2; si++) {
+        var sw = ((t * 22) + si * 7) % 14;
+        ctx.globalAlpha = Math.max(0, 1 - sw / 14) * 0.95;
+        ctx.beginPath(); ctx.ellipse(12 + si * 3, -6 + sw * 0.55, 2, 3, 0.3, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    // 咖啡杯(高压后短暂回血)
+    if (a.state === "coffee") {
+      ctx.fillStyle = C.accent;
+      rr(7, 3.5, 8, 8.5, 2); ctx.fill();
+      ctx.strokeStyle = C.accent; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(16.5, 7.5, 3, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+      ctx.strokeStyle = "rgba(200,200,220,.55)"; ctx.lineWidth = 1.2;
+      for (var stw = 0; stw < 2; stw++) {
+        var sy2 = ((t * 18) + stw * 5) % 9;
+        ctx.globalAlpha = Math.max(0, 1 - sy2 / 9) * 0.8;
+        ctx.beginPath(); ctx.arc(11 + stw * 3, 1 - sy2, 1.6, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+
+    // 喝茶:大茶杯 + 茶托 + 双蹄捧杯
+    if (a.idleMode === "tea") {
+      ctx.fillStyle = "#f4f4f8";
+      ctx.beginPath(); ctx.ellipse(2, 15.5, 9, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f4f4f8";
+      rr(-3, 6, 10, 9, 2); ctx.fill();
+      ctx.fillStyle = "#8a5a3a"; ctx.fillRect(-1.8, 8, 6.6, 3.4);
+      ctx.strokeStyle = "#c9c9d6"; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(8.6, 10.5, 2.6, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+      ctx.fillStyle = body;
+      rr(-6, 9, 5, 6, 2); ctx.fill();
+      rr(4, 9, 5, 6, 2); ctx.fill();
+      ctx.strokeStyle = "rgba(200,200,220,.5)"; ctx.lineWidth = 1.2;
+      for (var st3 = 0; st3 < 2; st3++) {
+        var sy3 = ((t * 14) + st3 * 5) % 10;
+        ctx.globalAlpha = Math.max(0, 1 - sy3 / 10) * 0.8;
+        ctx.beginPath(); ctx.arc(2 + st3 * 3, 4 - sy3, 1.7, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+    // 玩游戏:手柄 + 拇指狂按
+    if (gameFace) {
+      ctx.save(); ctx.translate(0, 6); ctx.rotate(-0.06 + Math.sin(t * 8) * 0.04);
+      ctx.fillStyle = "#232329";
+      rr(-12, -4.5, 24, 9.5, 4.5); ctx.fill();
+      ctx.fillStyle = "#35353f";
+      ctx.beginPath(); ctx.arc(-9.5, 3.8, 4.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(9.5, 3.8, 4.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#3ecf8e"; ctx.beginPath(); ctx.arc(-5, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ff8fa3"; ctx.beginPath(); ctx.arc(5, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f0b429"; ctx.beginPath(); ctx.arc(-8.5, -1.5, 1.1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#5aa2ff"; ctx.beginPath(); ctx.arc(8.5, -1.5, 1.1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = body;
+      var jL = Math.max(0, Math.sin(t * 16)) * 1.8, jR = Math.max(0, Math.sin(t * 16 + 2.4)) * 1.8;
+      rr(-8, -9 - jL, 5, 5.5, 2); ctx.fill();
+      rr(3, -9 - jR, 5, 5.5, 2); ctx.fill();
+      ctx.restore();
+    }
+    // 疯狂敲键盘:飞出的键帽
+    if (working) {
+      a._kt = a._kt || 0;
+      var nwt = performance.now();
+      if (nwt - a._kt > (a.state === "high" ? 42 : 85)) {
+        a._kt = nwt;
+        (a.keys = a.keys || []).push({
+          x: Math.random() * 26 - 13, y: 13,
+          vx: Math.random() * 34 - 17, vy: -(52 + Math.random() * 40),
+          r: Math.random() * 6.28, life: 1
+        });
+      }
+      a.keys.forEach(function (k) {
+        k.x += k.vx * 0.016; k.y += k.vy * 0.016; k.vy += 240 * 0.016; k.life -= 0.028; k.r += 0.28;
+      });
+      a.keys = a.keys.filter(function (k) { return k.life > 0; });
+      a.keys.forEach(function (k) {
+        ctx.save(); ctx.translate(k.x, k.y); ctx.rotate(k.r);
+        ctx.globalAlpha = Math.max(0, k.life);
+        ctx.fillStyle = "#f4f4f8"; rr(-2.5, -1.7, 5, 3.4, 0.8); ctx.fill();
+        ctx.fillStyle = "rgba(0,0,0,.28)"; rr(-1.6, -0.9, 3.2, 1.7, 0.5); ctx.fill();
+        ctx.restore();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    // 围巾
+    ctx.fillStyle = a.scarf;
+    rr(-12, -12, 24, 6.5, 3); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.22)";
+    rr(-12, -10.2, 24, 1.2, 0.6); ctx.fill();
+    rr(-12, -7.8, 24, 1.2, 0.6); ctx.fill();
+    ctx.fillStyle = a.scarf;
+    ctx.beginPath();
+    ctx.moveTo(10, -9);
+    ctx.quadraticCurveTo(20 + Math.sin(t * 5) * 3, -4, 16 + Math.sin(t * 5) * 4, 5);
+    ctx.quadraticCurveTo(12, -1, 9, -6.5);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,.14)";
+    ctx.beginPath(); ctx.arc(10, -9, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function drawDesk(a, t) {
+    var dw = Math.min(104, (W - 52) / agents.length - 12);
+    var absent = a.state === "absent" && a.idleMode !== "wander";
+    var active = !absent && (a.state === "working" || a.state === "high");
+    ctx.save();
+    ctx.translate(a.deskX, deskY);
+    ctx.scale(PS, PS);
+    // 桌体
+    ctx.fillStyle = absent ? C.woodDark : C.wood;
+    rr(-dw / 2, 0, dw, 9, 3); ctx.fill();
+    if (!absent) {
+      ctx.fillStyle = "rgba(255,255,255,.16)";
+      rr(-dw / 2 + 2, 1, dw - 4, 2, 1); ctx.fill();
+    }
+    ctx.fillStyle = C.woodDark;
+    rr(-dw / 2 + 5, 9, dw - 10, 24, 2); ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,.12)";
+    rr(-dw / 2 + 9, 13, dw - 18, 8, 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.15)";
+    rr(-4, 16, 8, 1.6, 0.8); ctx.fill();
+    // 显示器
+    ctx.fillStyle = "#232329";
+    rr(-21, -27, 42, 27, 4); ctx.fill();
+    ctx.fillStyle = C.screenOff;
+    rr(-19, -25, 38, 22, 2); ctx.fill();
+    var present = a.state !== "absent";
+    if (present) {
+      var flick = a.state === "high" ? 0.75 + 0.25 * Math.sin(performance.now() / 40)
+               : active ? 0.62 + 0.12 * Math.sin(performance.now() / 300) : 0.36;
+      ctx.globalAlpha = flick;
+      ctx.fillStyle = a.scarf;
+      rr(-17, -23, 34, 18, 2); ctx.fill();
+      ctx.globalAlpha = 1;
+      if (active) {
+        // 疯狂滚动的代码行 + 闪烁光标
+        ctx.fillStyle = "rgba(255,255,255,.8)";
+        var scroll = Math.floor(t * (a.state === "high" ? 9 : 5));
+        for (var li = 0; li < 4; li++) {
+          var seed = li + scroll + a.idx * 5;
+          rr(-14, -21 + li * 4.4, 9 + (seed * 37 % 16), 1.8, 0.9); ctx.fill();
+        }
+        if (Math.floor(performance.now() / 220) % 2 === 0) { rr(8, -12, 3, 1.8, 0.9); ctx.fill(); }
+      } else if (a.idleMode === "game") {
+        // 屏幕变弹珠小游戏:弹球 + 挡板
+        ctx.fillStyle = "rgba(0,0,0,.3)";
+        rr(-17, -23, 34, 18, 2); ctx.fill();
+        var ballX = -13 + ((t * 26 + a.idx * 7) % 26);
+        var ballY = -21.5 + Math.abs(Math.sin(t * 3.4 + a.idx)) * 12;
+        ctx.fillStyle = "#ffd66b";
+        ctx.beginPath(); ctx.arc(ballX, ballY, 1.7, 0, Math.PI * 2); ctx.fill();
+        var padX = Math.sin(t * 2.2 + a.idx) * 9;
+        ctx.fillStyle = "#f4f4f8";
+        rr(padX - 5, -7.5, 10, 1.8, 0.9); ctx.fill();
+      } else {
+        // 待机/喝茶:呼吸微光
+        ctx.fillStyle = "rgba(255,255,255," + (0.1 + 0.08 * Math.sin(t * 1.4 + a.idx)).toFixed(3) + ")";
+        rr(-17, -23, 34, 18, 2); ctx.fill();
+      }
+    }
+    ctx.fillStyle = C.woodDark;
+    rr(-2.5, -4, 5, 4, 1); ctx.fill();
+    rr(-7, -1.5, 14, 2, 1); ctx.fill();
+    if (!absent) {
+      ctx.fillStyle = "#ffd66b";
+      ctx.save(); ctx.translate(16, -8); ctx.rotate(0.12);
+      ctx.fillRect(-3.2, -3.2, 6.4, 6.4); ctx.restore();
+    }
+    // 键盘
+    ctx.fillStyle = absent ? C.screenOff : "#5a5a6a";
+    rr(-13, -4, 27, 3.8, 2); ctx.fill();
+    if (!absent) {
+      ctx.fillStyle = "rgba(255,255,255,.25)";
+      for (var k = 0; k < 5; k++) { rr(-11 + k * 5, -3.2, 3, 1.6, 0.8); ctx.fill(); }
+    }
+    // 敲键盘的蹄子(干活时高频)
+    if (active) {
+      var ph = Math.sin(performance.now() / (a.state === "high" ? 36 : 62));
+      ctx.fillStyle = "#35353f";
+      rr(-9, -7.5 - Math.max(0, ph) * 2.8, 6, 6.5, 2); ctx.fill();
+      rr(3, -7.5 - Math.max(0, -ph) * 2.8, 6, 6.5, 2); ctx.fill();
+      ctx.fillStyle = "#232329";
+      rr(-9, -3.5 - Math.max(0, ph) * 2.8, 6, 2.5, 1); ctx.fill();
+      rr(3, -3.5 - Math.max(0, -ph) * 2.8, 6, 2.5, 1); ctx.fill();
+    }
+    // 私人物品:马克杯 + 文件
+    if (!absent) {
+      ctx.fillStyle = a.scarf;
+      rr(-dw / 2 + 6, -9.5, 6, 6.5, 1.5); ctx.fill();
+      ctx.strokeStyle = a.scarf; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.arc(-dw / 2 + 12.8, -6.3, 2, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+      ctx.fillStyle = "#f4f4f8";
+      ctx.save(); ctx.translate(dw / 2 - 13, -6); ctx.rotate(-0.08);
+      ctx.fillRect(-6, -4.5, 12, 9);
+      ctx.strokeStyle = "rgba(60,60,80,.5)"; ctx.lineWidth = 0.8;
+      for (var pl = 0; pl < 3; pl++) { ctx.beginPath(); ctx.moveTo(-4, -2 + pl * 2.6); ctx.lineTo(3, -2 + pl * 2.6); ctx.stroke(); }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawScene(t) {
+    var wallB = 300;
+    // 墙 + 墙裙 + 踢脚板
+    ctx.fillStyle = C.wall; ctx.fillRect(0, 0, W, wallB);
+    ctx.fillStyle = "rgba(0,0,0,.05)"; ctx.fillRect(0, wallB - 26, W, 26);
+    ctx.fillStyle = C.woodDark; ctx.fillRect(0, wallB - 9, W, 9);
+    ctx.fillStyle = "rgba(255,255,255,.12)"; ctx.fillRect(0, wallB - 9, W, 1.6);
+    // 地板
+    ctx.fillStyle = C.floorA; ctx.fillRect(0, wallB, W, H - wallB);
+    ctx.fillStyle = C.floorB;
+    var tile = 46, off = 0;
+    for (var fy = wallB; fy < H; fy += tile) {
+      for (var fx = (off % 2) * tile / 2 - tile; fx < W; fx += tile) {
+        if (((fx / tile | 0) + (fy / tile | 0)) % 2 === 0) ctx.fillRect(fx, fy, tile, tile);
+      }
+      off++;
+    }
+    var backY = 396;  // 后排物件(靠墙)基线
+    // 工位区地毯(前沿)
+    ctx.fillStyle = "rgba(0,0,0,.07)";
+    rr(16, floorY + 2, W - 32, H - floorY - 10, 12); ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,.10)"; ctx.lineWidth = 1.6;
+    ctx.setLineDash([8, 5]);
+    rr(24, floorY + 6, W - 48, H - floorY - 18, 9); ctx.stroke();
+    ctx.setLineDash([]);
+    // 彩旗
+    ctx.strokeStyle = "rgba(120,120,140,.55)"; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(8, 10);
+    ctx.quadraticCurveTo(W / 2, 38, W - 8, 10); ctx.stroke();
+    var bn = Math.max(9, Math.floor(W / 80));
+    for (var bi = 0; bi < bn; bi++) {
+      var u = (bi + 0.5) / bn;
+      var bx = (1 - u) * (1 - u) * 8 + 2 * (1 - u) * u * (W / 2) + u * u * (W - 8);
+      var by = (1 - u) * (1 - u) * 10 + 2 * (1 - u) * u * 38 + u * u * 10;
+      ctx.fillStyle = SCARFS[bi % SCARFS.length];
+      ctx.beginPath();
+      ctx.moveTo(bx - 7, by); ctx.lineTo(bx + 7, by); ctx.lineTo(bx, by + 14);
+      ctx.closePath(); ctx.fill();
+    }
+    // 大窗户:天空 + 太阳 + 飘云
+    var wx = Math.max(16, W * 0.05), wy = 46, ww = 128, wh = 84;
+    ctx.fillStyle = C.border; ctx.fillRect(wx - 4, wy - 4, ww + 8, wh + 8);
+    var sky = ctx.createLinearGradient(0, wy, 0, wy + wh);
+    sky.addColorStop(0, "rgba(150,190,255,.75)");
+    sky.addColorStop(1, "rgba(214,232,255,.6)");
+    ctx.fillStyle = sky; ctx.fillRect(wx, wy, ww, wh);
+    ctx.fillStyle = "#f7c948";
+    ctx.beginPath(); ctx.arc(wx + 22, wy + 18, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.85)";
+    ctx.beginPath();
+    ctx.ellipse(wx + 70, wy + 22, 15, 6.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(wx + 80, wy + 18, 10, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(wx + 36, wy + 52, 13, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+    var cdx = wx + 12 + (t * 3.4) % (ww - 24);
+    ctx.beginPath(); ctx.ellipse(cdx, wy + 38, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C.border;
+    ctx.fillRect(wx + ww / 2 - 2, wy, 4, wh);
+    ctx.fillRect(wx, wy + wh * 0.55, ww, 4);
+    ctx.fillStyle = C.wood; ctx.fillRect(wx - 9, wy + wh + 4, ww + 18, 7);
+    // 挂钟
+    var cx0 = W * 0.28, cy0 = 78, cr = 17;
+    ctx.fillStyle = C["--zw-panel"];
+    ctx.beginPath(); ctx.arc(cx0, cy0, cr, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = C.dim; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.arc(cx0, cy0, cr, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 1.2;
+    for (var ti = 0; ti < 12; ti++) {
+      var ta = ti / 12 * Math.PI * 2;
+      var r1 = ti % 3 === 0 ? cr - 6 : cr - 3.4;
+      ctx.beginPath();
+      ctx.moveTo(cx0 + Math.cos(ta) * r1, cy0 + Math.sin(ta) * r1);
+      ctx.lineTo(cx0 + Math.cos(ta) * (cr - 2), cy0 + Math.sin(ta) * (cr - 2));
+      ctx.stroke();
+    }
+    ctx.strokeStyle = C.text; ctx.lineCap = "round";
+    var mA = t * 0.25, hA = -Math.PI / 3 + t * 0.02;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx0, cy0);
+    ctx.lineTo(cx0 + Math.cos(hA) * 7.5, cy0 + Math.sin(hA) * 7.5); ctx.stroke();
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx0, cy0);
+    ctx.lineTo(cx0 + Math.cos(mA) * 11.5, cy0 + Math.sin(mA) * 11.5); ctx.stroke();
+    ctx.lineCap = "butt";
+    ctx.fillStyle = C.warn;
+    ctx.beginPath(); ctx.arc(cx0, cy0, 1.8, 0, Math.PI * 2); ctx.fill();
+    // 挂画 x2
+    function frame(fx0, fy0, fw0, fh0) {
+      ctx.fillStyle = C.wood; ctx.fillRect(fx0 - 3.5, fy0 - 3.5, fw0 + 7, fh0 + 7);
+      ctx.fillStyle = C["--zw-panel"]; ctx.fillRect(fx0, fy0, fw0, fh0);
+    }
+    frame(W * 0.345, 52, 54, 40);
+    var f1 = W * 0.345;
+    ctx.fillStyle = "#5aa2ff";
+    ctx.beginPath(); ctx.moveTo(f1 + 5, 52 + 33); ctx.lineTo(f1 + 22, 52 + 12); ctx.lineTo(f1 + 38, 52 + 33); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#8a7bff";
+    ctx.beginPath(); ctx.moveTo(f1 + 22, 52 + 33); ctx.lineTo(f1 + 36, 52 + 19); ctx.lineTo(f1 + 49, 52 + 33); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#f7c948";
+    ctx.beginPath(); ctx.arc(f1 + 44, 52 + 9, 4, 0, Math.PI * 2); ctx.fill();
+    frame(W * 0.405, 58, 42, 32);
+    var f2 = W * 0.405;
+    ctx.fillStyle = "#ff8fa3"; ctx.fillRect(f2 + 6, 58 + 5, 24, 4.5);
+    ctx.fillStyle = "#f0b429"; ctx.fillRect(f2 + 6, 58 + 13, 19, 4.5);
+    ctx.fillStyle = "#3ecf8e"; ctx.fillRect(f2 + 6, 58 + 21, 29, 4.5);
+    // 长书架
+    var sx = W * 0.465, sy = 96, sl = 168;
+    ctx.fillStyle = C.wood; ctx.fillRect(sx, sy, sl, 7);
+    ctx.fillStyle = C.woodDark; ctx.fillRect(sx + 3, sy + 7, 6, 4); ctx.fillRect(sx + sl - 9, sy + 7, 6, 4);
+    var bookCols = ["#8a7bff", "#3ecf8e", "#f0b429", "#5aa2ff", "#ff8fa3", "#4dd0c4"];
+    var bh = [22, 18, 26, 20, 16];
+    for (var bo = 0; bo < 5; bo++) {
+      ctx.fillStyle = bookCols[bo];
+      ctx.fillRect(sx + 10 + bo * 12, sy - bh[bo], 9.5, bh[bo]);
+      ctx.fillStyle = "rgba(255,255,255,.35)";
+      ctx.fillRect(sx + 12.4 + bo * 12, sy - bh[bo] + 3, 4.6, 1.8);
+    }
+    for (var bo2 = 0; bo2 < 3; bo2++) {
+      ctx.fillStyle = bookCols[(bo2 + 2) % 6];
+      ctx.fillRect(sx + 76 + bo2 * 12, sy - (17 + bo2 * 3), 9.5, 17 + bo2 * 3);
+    }
+    ctx.save(); ctx.translate(sx + 118, sy); ctx.rotate(-0.2);
+    ctx.fillStyle = bookCols[5]; ctx.fillRect(-4.5, -20, 9, 20); ctx.restore();
+    // 奖杯
+    ctx.fillStyle = "#f0b429";
+    ctx.beginPath(); ctx.moveTo(sx + 134, sy - 20);
+    ctx.lineTo(sx + 147, sy - 20); ctx.lineTo(sx + 144.6, sy - 9);
+    ctx.lineTo(sx + 136.4, sy - 9); ctx.closePath(); ctx.fill();
+    ctx.fillRect(sx + 139.4, sy - 9, 2.6, 4.5); ctx.fillRect(sx + 135.4, sy - 5, 10.6, 5);
+    ctx.strokeStyle = "#f0b429"; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(sx + 131.6, sy - 17.5, 3.4, Math.PI / 2, Math.PI * 1.5); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx + 149.4, sy - 17.5, 3.4, Math.PI * 1.5, Math.PI / 2); ctx.stroke();
+    // 多肉
+    ctx.fillStyle = "#b3765a"; rr(sx + sl - 22, sy - 12, 14, 12, 2); ctx.fill();
+    ctx.fillStyle = "#3f9d63";
+    ctx.beginPath(); ctx.arc(sx + sl - 15, sy - 15, 5.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#357e4f";
+    ctx.beginPath(); ctx.arc(sx + sl - 18, sy - 17.5, 3.2, 0, Math.PI * 2); ctx.fill();
+    // 白板 + 便签
+    var bx0 = Math.min(W * 0.63, W - 260), by0 = 200, bw2 = 100, bh2 = 56;
+    ctx.fillStyle = "rgba(0,0,0,.08)"; rr(bx0 + 3, by0 + 3, bw2, bh2, 4); ctx.fill();
+    ctx.fillStyle = C["--zw-panel"]; rr(bx0, by0, bw2, bh2, 4); ctx.fill();
+    ctx.strokeStyle = C.border; ctx.lineWidth = 1.4; rr(bx0, by0, bw2, bh2, 4); ctx.stroke();
+    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = "rgba(90,162,255,.8)";
+    ctx.beginPath(); ctx.moveTo(bx0 + 10, by0 + 13); ctx.lineTo(bx0 + 60, by0 + 13); ctx.stroke();
+    ctx.strokeStyle = "rgba(138,123,255,.7)";
+    ctx.beginPath(); ctx.moveTo(bx0 + 10, by0 + 24); ctx.lineTo(bx0 + 80, by0 + 24); ctx.stroke();
+    ctx.strokeStyle = "rgba(240,180,41,.8)";
+    ctx.beginPath(); ctx.moveTo(bx0 + 10, by0 + 35); ctx.lineTo(bx0 + 50, by0 + 35); ctx.stroke();
+    ctx.fillStyle = "#ff6b6b"; ctx.beginPath(); ctx.arc(bx0 + bw2 - 12, by0 + 12, 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C.woodDark; ctx.fillRect(bx0 + 14, by0 + bh2, bw2 - 28, 4);
+    ctx.fillStyle = "#ffd66b"; ctx.save(); ctx.translate(bx0 + bw2 + 18, by0 + 10); ctx.rotate(0.1); ctx.fillRect(-6.5, -6.5, 13, 13); ctx.restore();
+    ctx.fillStyle = "#ff9db1"; ctx.save(); ctx.translate(bx0 + bw2 + 34, by0 + 26); ctx.rotate(-0.12); ctx.fillRect(-6.5, -6.5, 13, 13); ctx.restore();
+    // 大绿植
+    var px0 = 40;
+    function leaf(lx, ly, ang, len, wd, col) {
+      ctx.fillStyle = col;
+      ctx.save(); ctx.translate(lx, ly); ctx.rotate(ang);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(wd, -len * 0.5, 0, -len);
+      ctx.quadraticCurveTo(-wd, -len * 0.5, 0, 0);
+      ctx.fill();
+      ctx.restore();
+    }
+    leaf(px0 - 10, backY - 6, -0.45, 44, 11, "#357e4f");
+    leaf(px0 + 10, backY - 6, 0.45, 44, 11, "#3f9d63");
+    leaf(px0 - 2, backY - 8, -0.12, 56, 13, "#3f9d63");
+    leaf(px0 + 6, backY - 4, 0.8, 32, 9, "#2f6e45");
+    leaf(px0 - 8, backY - 4, -0.85, 29, 8, "#2f6e45");
+    ctx.fillStyle = "#b3765a";
+    ctx.beginPath();
+    ctx.moveTo(px0 - 20, backY - 8); ctx.lineTo(px0 + 20, backY - 8);
+    ctx.lineTo(px0 + 14, backY + 30); ctx.lineTo(px0 - 14, backY + 30);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#c98a6b"; ctx.fillRect(px0 - 22, backY - 12, 44, 8);
+    // 窗下书柜
+    var bcx = wx + 10, bcw = ww - 14;
+    ctx.fillStyle = C.woodDark; ctx.fillRect(bcx, backY - 58, bcw, 58);
+    ctx.fillStyle = C.wood; ctx.fillRect(bcx + 3, backY - 55, bcw - 6, 52);
+    ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.fillRect(bcx + 3, backY - 31, bcw - 6, 4);
+    var cols2 = ["#8a7bff", "#5aa2ff", "#3ecf8e", "#f0b429", "#ff8fa3", "#4dd0c4", "#ef9a6d"];
+    for (var sh = 0; sh < 2; sh++) {
+      var bby = backY - 8 - sh * 23;
+      var bxx = bcx + 8;
+      for (var bk = 0; bk < 8 && bxx < bcx + bcw - 13; bk++) {
+        var bhh = 13 + ((bk + sh) % 3) * 4;
+        ctx.fillStyle = cols2[(bk + sh * 3) % 7];
+        ctx.fillRect(bxx, bby - bhh, 9, bhh);
+        bxx += 11.5;
+      }
+    }
+    // 咖啡角
+    var cmx = W - 84;
+    ctx.fillStyle = C.woodDark; rr(cmx - 42, backY - 46, 84, 46, 4); ctx.fill();
+    ctx.fillStyle = C.wood; rr(cmx - 42, backY - 46, 84, 7, 3); ctx.fill();
+    ctx.fillStyle = "#565666"; rr(cmx - 24, backY - 100, 48, 52, 7); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.14)"; rr(cmx - 24, backY - 100, 48, 12, 6); ctx.fill();
+    ctx.fillStyle = C.accent; ctx.fillRect(cmx - 14, backY - 82, 28, 6);
+    ctx.fillStyle = "#3ecf8e"; ctx.beginPath(); ctx.arc(cmx - 8, backY - 70, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ff8fa3"; ctx.beginPath(); ctx.arc(cmx + 8, backY - 70, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f4f4f8"; rr(cmx - 6, backY - 66, 12, 12, 2); ctx.fill();
+    var st2 = (t * 26) % 26;
+    ctx.strokeStyle = "rgba(200,200,220,.5)"; ctx.lineWidth = 1.8;
+    ctx.globalAlpha = Math.max(0, 1 - st2 / 26);
+    ctx.beginPath(); ctx.arc(cmx, backY - 72 - st2 * 0.9, 4.4 + st2 * 0.16, Math.PI, Math.PI * 2); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "#f4f4f8";
+    rr(cmx + 20, backY - 28, 13, 9, 1.5); ctx.fill();
+    rr(cmx + 22, backY - 37, 11, 8, 1.5); ctx.fill();
+    // 垃圾桶(前沿右端)
+    var tx0 = W - 30;
+    ctx.fillStyle = C.chair;
+    ctx.beginPath();
+    ctx.moveTo(tx0 - 10, H - 36); ctx.lineTo(tx0 + 10, H - 36);
+    ctx.lineTo(tx0 + 7, H - 8); ctx.lineTo(tx0 - 7, H - 8);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,.25)";
+    ctx.beginPath(); ctx.ellipse(tx0, H - 36, 10, 3.4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f4f4f8";
+    ctx.beginPath();
+    ctx.moveTo(tx0 + 13, H - 16); ctx.lineTo(tx0 + 19, H - 21); ctx.lineTo(tx0 + 22, H - 13);
+    ctx.lineTo(tx0 + 16, H - 10); ctx.closePath(); ctx.fill();
+
+    // 在座小马 → 桌子 → 溜达小马(最上层)
+    agents.forEach(function (a) { if (a.idleMode !== "wander") drawPony(a, t); });
+    agents.forEach(function (a) { drawDesk(a, t); });
+    agents.forEach(function (a) { if (a.idleMode === "wander") drawPony(a, t); });
+
+    // 高压蒸汽
+    agents.forEach(function (a) {
+      if (a.state === "high" && !reduceMotion && Math.random() < 0.12)
+        puffs.push({ x: a.x + (Math.random() * 14 - 7), y: deskY - 52 * PS, r: 2.5 + Math.random() * 2.5, life: 1 });
+    });
+    puffs = puffs.filter(function (p) { return p.life > 0; });
+    puffs.forEach(function (p) {
+      p.y -= 0.6; p.life -= 0.02;
+      ctx.fillStyle = "rgba(180,180,200," + (0.35 * p.life).toFixed(3) + ")";
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    });
+    if (selected && selected.state !== "absent") {
+      ctx.strokeStyle = selected.scarf; ctx.lineWidth = 2.4;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.ellipse(selected.x, selected.idleMode === "wander" ? deskY + selected.wy * 46 + 26 : floorY - 6,
+                  27 * PS, 7 * PS, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  function stepAgents(dt) {
+    var now = Date.now();
+    agents.forEach(function (a) {
+      if (a.state === "walkin") {
+        a.walkT += dt;
+        var k = Math.min(1, a.walkT / 1.1);
+        a.x = -60 + (a.deskX + 60) * (k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+        if (k >= 1) { a.state = "standby"; a.x = a.deskX; }
+      }
+      if (a.state === "working" || a.state === "high") {
+        a.idleMode = null; a.phase = null; a.wy = 0; a.keys = a.keys || [];
+      }
+      // 闲马行为调度:喝茶 / 玩游戏 / 下桌溜达
+      if (a.state === "standby") {
+        if (!a.idleMode) {
+          if (!a.idleNext || now >= a.idleNext) {
+            var r = Math.random();
+            a.idleMode = r < 0.34 ? "tea" : r < 0.67 ? "game" : "wander";
+            a.idleStart = now;
+            a.idleDur = a.idleMode === "tea" ? 7000 + Math.random() * 4000
+                      : a.idleMode === "game" ? 9000 + Math.random() * 5000
+                      : 8000 + Math.random() * 4000;
+            if (a.idleMode === "wander") {
+              a.phase = "out";
+              var dir = Math.random() < 0.5 ? 1 : -1;
+              a.wtarget = Math.max(50, Math.min(W - 50, a.deskX + dir * (70 + Math.random() * 150)));
+            }
+          }
+        } else if (now - a.idleStart > a.idleDur) {
+          if (a.idleMode === "wander" && a.phase !== "back") {
+            a.phase = "back"; a.idleStart = now; a.idleDur = 9000;
+          } else {
+            a.idleMode = null; a.phase = null;
+            a.idleNext = now + 1500 + Math.random() * 3000;
+          }
+        }
+      }
+      // 溜达位移
+      if (a.idleMode === "wander") {
+        var goal = a.phase === "back" ? a.deskX : a.wtarget;
+        var d = goal - a.x;
+        var sp = 64 * dt;
+        if (Math.abs(d) > 3) a.x += (d > 0 ? 1 : -1) * Math.min(Math.abs(d), sp);
+        if (a.phase === "out") a.wy = Math.min(1, a.wy + dt * 1.7);
+        else if (Math.abs(d) <= 3) a.wy = Math.max(0, a.wy - dt * 1.7);
+      } else if (a.state !== "walkin") {
+        a.wy = 0;
+        if (a.state !== "absent") a.x += (a.deskX - a.x) * Math.min(1, dt * 8);
+      }
+      if ((a.state === "working" || a.state === "high") && now - a.workStart > 15 * 60 * 1000) {
+        a.state = "standby"; a.bubble = ""; a.idleMode = null;
+      }
+    });
+  }
+
+function syncOverlays() {
+    var act = 0, busy = 0;
+    agents.forEach(function (a, i) {
+      if (a.state !== "absent") act++;
+      if (a.state === "working" || a.state === "high") busy++;
+      var t = tagEls[i];
+      t.style.left = a.deskX + "px";
+      t.style.opacity = a.state === "absent" ? ".45" : "1";
+      t.firstChild.style.background = a.state === "absent" ? C.dim :
+        (a.state === "working" || a.state === "high") ? C.accent :
+        (a.state === "coffee" ? C.warn : C.ok);
+      var b = bubbleEls[i];
+      var show = a.bubble && a.state !== "absent" && a.state !== "walkin" && (a === sim.lastActor || a === selected);
+      if (show) {
+        b.textContent = a.bubble;
+        b.style.display = "block";
+        var bw = b.offsetWidth || 120;
+        b.style.left = Math.max(bw / 2 + 4, Math.min(W - bw / 2 - 4, a.x)) + "px";
+        b.style.top = Math.round(deskY - 70 * PS - 30 - (a.idx % 2) * 22) + "px";
+      } else b.style.display = "none";
+    });
+    document.getElementById("zw-st-active").textContent = act + "/5";
+    if (sim.source === "live") setLive(busy ? (agents.some(function (a) { return a.state === "high"; }) ? "高压运转 · " + busy + " 个任务" : "任务执行中") : "实时 · 空闲中", busy > 0);
+    if (selected) updateDetail();
+  }
+  var lastTs = 0;
+  window.__errs = [];
+  function tickAndDraw(dt) {
+    sim.t += dt;
+    if (sim.source === "demo" && demoT >= 0) {
+      demoT += dt;
+      demoEvents.forEach(function (e) { if (!e.done && demoT >= e.dt) { e.done = true; try { e.fn(); } catch (err) {} } });
+    }
+    stepAgents(dt);
+    drawScene(sim.t);
+    syncOverlays();
+  }
+  function frame(ts) {
+    try {
+      var dt = Math.min(0.05, (ts - lastTs) / 1000 || 0.016);
+      lastTs = ts;
+      tickAndDraw(dt);
+    } catch (e) { window.__errs.push(String(e)); }
+    requestAnimationFrame(frame);
+  }
+  function drawStatic() {
+    agents.forEach(function (a) { if (a.state === "walkin") { a.state = "standby"; a.x = a.deskX; } });
+    drawScene(sim.t); syncOverlays();
+  }
+  setInterval(function () {
+    if (reduceMotion) return;
+    try { tickAndDraw(0.25); } catch (e) {}
+  }, 400);
+
+  canvas.addEventListener("click", function (e) {
+    var rect = canvas.getBoundingClientRect();
+    var mx = e.clientX - rect.left;
+    var best = null, bd = 1e9;
+    agents.forEach(function (a) {
+      if (a.state === "absent") return;
+      var d = Math.abs(mx - a.x);
+      if (d < bd) { bd = d; best = a; }
+    });
+    selected = best && bd < 44 ? best : null;
+    updateDetail();
+  });
+  document.getElementById("zw-tab-log").onclick = function () { setTab(true); };
+  document.getElementById("zw-tab-art").onclick = function () { setTab(false); };
+  function setTab(logActive) {
+    document.getElementById("zw-tab-log").setAttribute("aria-selected", logActive);
+    document.getElementById("zw-tab-art").setAttribute("aria-selected", !logActive);
+    document.getElementById("zw-panel-log").hidden = !logActive;
+    document.getElementById("zw-panel-art").hidden = logActive;
+  }
+
+  layout();
+  new ResizeObserver(function () { layout(); }).observe(scene);
+  updateDetail();
+  if (reduceMotion) { drawStatic(); setInterval(function () { poll(); }, 3000); }
+  else requestAnimationFrame(function (ts) { lastTs = ts; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>

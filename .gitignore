@@ -1,0 +1,8 @@
+edge-profile/
+events.jsonl
+state.json
+wallet.json
+keeper.log
+*.log
+__pycache__/
+*.pyc
